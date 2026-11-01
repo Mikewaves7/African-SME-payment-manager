@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { Activity, ArrowDownLeft, ArrowUpRight, BadgeCheck, Banknote, Bell, BriefcaseBusiness, Check, ChevronDown, CircleHelp, Clock3, Copy, Download, ExternalLink, FileText, Globe2, LayoutDashboard, LoaderCircle, Plus, RefreshCw, Search, Send, Settings2, ShieldCheck, Wallet, X } from 'lucide-react'
 import { accountBalances, connectFreighter, explorerAccount, explorerTx, payXlm, recentPayments, type PaymentRecord } from './stellar'
 
@@ -56,7 +57,7 @@ export default function App() {
     catch(e) { setError(e instanceof Error ? e.message : 'Wallet connection failed.') }
     finally { setWalletBusy(false) }
   }
-  async function submitPayment(e: React.FormEvent) {
+  async function submitPayment(e: FormEvent) {
     e.preventDefault(); setError(''); setNotice('')
     if (!wallet) { setError('Connect your Freighter wallet first.'); return }
     setLoading(true)
@@ -64,13 +65,13 @@ export default function App() {
     catch(e) { setError(e instanceof Error ? e.message : 'Payment could not be submitted.') }
     finally { setLoading(false) }
   }
-  function addContact(e: React.FormEvent) {
+  function addContact(e: FormEvent) {
     e.preventDefault()
     if (!contactName.trim() || !/^G[A-Z2-7]{55}$/.test(contactAddress.trim())) { setError('Add a contact name and a valid Stellar public address.'); return }
     setContacts([{id:crypto.randomUUID(),name:contactName.trim(),business:contactBusiness.trim(),address:contactAddress.trim()},...contacts])
     setContactName(''); setContactBusiness(''); setContactAddress(''); setModal(''); setNotice('Contact saved on this device.')
   }
-  function addInvoice(e: React.FormEvent) {
+  function addInvoice(e: FormEvent) {
     e.preventDefault()
     if (!invoiceCustomer.trim() || Number(invoiceAmount)<=0) { setError('Enter a customer and a valid invoice amount.'); return }
     setInvoices([{id:`KF-${Date.now().toString().slice(-6)}`,customer:invoiceCustomer.trim(),description:invoiceDescription.trim(),amount:Number(invoiceAmount),due:invoiceDue,status:'Pending'},...invoices])
@@ -126,4 +127,4 @@ function PaymentTable({items,wallet}:{items:PaymentRecord[];wallet:string}) {
   if (!items.length) return <Empty icon={<Clock3 size={25}/>} title="No payments to show" text="Your recent XLM payments will appear here after the account is active."/>
   return <div className="table-wrap"><table><thead><tr><th>TRANSACTION</th><th>TYPE</th><th>AMOUNT</th><th>DATE</th><th>STATUS</th></tr></thead><tbody>{items.map(p=>{const incoming=p.to===wallet;return <tr key={p.id}><td><div className="tx-cell"><span className={`tx-icon ${incoming?'in':'out'}`}>{incoming?<ArrowDownLeft size={16}/>:<ArrowUpRight size={16}/>}</span><span><b>{incoming?'Received from':'Sent to'} {short(incoming?p.from:p.to,7)}</b><small>{p.memo||'No memo'} · {short(p.hash,9)}</small></span></div></td><td><span className="type-pill">{incoming?'Incoming':'Outgoing'}</span></td><td><b className={incoming?'positive':'negative'}>{incoming?'+':'−'}{fmt(p.amount)} XLM</b></td><td>{dateFmt(p.createdAt)}</td><td><a className="confirmed" href={explorerTx(p.hash)} target="_blank" rel="noreferrer"><BadgeCheck size={15}/> Confirmed <ExternalLink size={11}/></a></td></tr>})}</tbody></table></div>
 }
-function Empty({icon,title,text}:{icon:React.ReactNode;title:string;text:string}) { return <div className="empty-state"><span>{icon}</span><b>{title}</b><p>{text}</p></div> }
+function Empty({icon,title,text}:{icon:ReactNode;title:string;text:string}) { return <div className="empty-state"><span>{icon}</span><b>{title}</b><p>{text}</p></div> }
